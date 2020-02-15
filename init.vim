@@ -186,12 +186,9 @@ noremap <LEADER>rc :e ~/.config/nvim/init.vim<CR>
 " Open Startify
 "noremap <LEADER>st :Startify<CR>
 
-" Undo operations
-noremap l u
-
 " Insert Key
-noremap k i
-noremap K I
+noremap h i
+noremap H I
 
 " make Y to copy till the end of the line
 nnoremap Y y$
@@ -235,26 +232,17 @@ noremap <c-d> :tab sp<CR>:term python3 -m pudb %<CR>
 " < n   i >
 "     e
 "     v
-noremap <silent> u k
-noremap <silent> n h
-noremap <silent> e j
-noremap <silent> i l
+noremap <silent> i k
+noremap <silent> j h
+noremap <silent> k j
 
 " U/E keys for 5 times u/e (faster navigation)
-noremap <silent> U 5k
-noremap <silent> E 5j
-
-" N key: go to the start of the line
-noremap <silent> N 0
-" I key: go to the end of the line
-noremap <silent> I $
+noremap <silent> W 5k
+noremap <silent> B 5j
 
 " Faster in-line navigation
 noremap W 5w
 noremap B 5b
-
-" set h (same as n, cursor left) to 'end of word'
-noremap h e
 
 " Ctrl + U or E will move up/down the view port without moving the cursor
 noremap <C-U> 5<C-y>
@@ -270,12 +258,6 @@ inoremap <C-a> <ESC>A
 " ===
 " === Command Mode Cursor Movement
 " ===
-cnoremap <C-a> <Home>
-cnoremap <C-e> <End>
-cnoremap <C-p> <Up>
-cnoremap <C-n> <Down>
-cnoremap <C-b> <Left>
-cnoremap <C-f> <Right>
 cnoremap <M-b> <S-Left>
 cnoremap <M-w> <S-Right>
 
@@ -285,10 +267,10 @@ cnoremap <M-w> <S-Right>
 " ===
 " Use <space> + new arrow keys for moving the cursor around windows
 noremap <LEADER>w <C-w>w
-noremap <LEADER>u <C-w>k
-noremap <LEADER>e <C-w>j
-noremap <LEADER>n <C-w>h
-noremap <LEADER>i <C-w>l
+noremap <LEADER>i <C-w>k
+noremap <LEADER>k <C-w>j
+noremap <LEADER>j <C-w>h
+noremap <LEADER>l <C-w>l
 
 " Disable the default s key
 noremap s <nop>
@@ -300,10 +282,10 @@ noremap sn :set nosplitright<CR>:vsplit<CR>:set splitright<CR>
 noremap si :set splitright<CR>:vsplit<CR>
 
 " Resize splits with arrow keys
-noremap <up> :res +5<CR>
-noremap <down> :res -5<CR>
-noremap <left> :vertical resize-5<CR>
-noremap <right> :vertical resize+5<CR>
+noremap <up> 5k
+noremap <down> 5j
+noremap <left> 5h
+noremap <right> 5l
 
 " Place the two screens up and down
 noremap sh <C-w>t<C-w>K
@@ -1186,11 +1168,11 @@ sign define vimspectorPC text=🔶 texthl=SpellBad
 " ===
 map <silent> w <Plug>CamelCaseMotion_w
 map <silent> b <Plug>CamelCaseMotion_b
-map <silent> h <Plug>CamelCaseMotion_e
+map <silent> e <Plug>CamelCaseMotion_e
 map <silent> ge <Plug>CamelCaseMotion_ge
 sunmap w
 sunmap b
-sunmap h
+sunmap e
 sunmap ge
 
 
