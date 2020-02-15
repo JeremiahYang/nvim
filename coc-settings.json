@@ -41,14 +41,14 @@
 		"value": "\uf89f",
 		"variable": "\ue71b"
 	},
-	"diagnostic.signOffset": 9999999,
+	"diagnostic.signOffset": 1,
 	"diagnostic.errorSign": "●",
 	"diagnostic.warningSign": "●",
-	"diagnostic.infoSign": "•",
+	"diagnostic.infoSign": "🛈",
 	"diagnostic.hintSign": "•",
 	"diagnostic.displayByAle": false,
-	"diagnostic.refreshOnInsertMode": true,
-	"diagnostic.refreshAfterSave": true,
+	"diagnostic.refreshOnInsertMode": false,
+	"diagnostic.refreshAfterSave": false,
 	"diagnostic.checkCurrentLine": true,
 	"diagnostic.virtualTextPrefix": " ❯❯❯ ",
 	"diagnostic.virtualText": true,
@@ -62,8 +62,7 @@
 		"css",
 		"python"
 	],
-	"signature.target": "echo",
-	"signature.enable": true,
+	"signature.target": "float",
 	"yank.enableCompletion" : false,
 	"explorer.width": 38,
 	"explorer.quitOnOpen": true,
@@ -143,10 +142,15 @@
 	"git.topRemovedSign.text": "▔",
 	"git.changeRemovedSign.text": "▒",
 	"git.enableGlobalStatus": false,
+	"git.signOffset": 2,
 	"tslint.autoFixOnSave": true,
 	"python.autoComplete.addBrackets": true,
 	"python.jediEnabled": false,
 	"python.formatting.provider": "yapf",
+	"python.formatting.yapfArgs": [
+        "--style",
+        "{SPACES_AROUND_POWER_OPERATOR: True, SPACES_BEFORE_COMMENT: 1}"
+    ],
 	"html.format.enable": true,
 	"javascript.referencesCodeLens.enable": true,
 	"javascript.showUnused": true,
@@ -177,10 +181,10 @@
 		"ccls": {
 			"command": "ccls",
 			"filetypes": ["c", "cpp", "cuda", "objc", "objcpp"],
-			"rootPatterns": [".ccls-root", "compile_commands.json"],
+			"rootPatterns": [".ccls", ".ccls-root", "compile_commands.json", ".git/", ".hg/"],
 			"initializationOptions": {
 				 "cache": {
-					 "directory": ".ccls-cache"
+					 "directory": "/tmp/ccls"
 				 }
 			 }
 		}
