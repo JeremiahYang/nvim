@@ -57,7 +57,7 @@ set softtabstop=2
 set autoindent
 set list
 set listchars=tab:\|\ ,trail:▫
-set scrolloff=4
+set scrolloff=2
 set ttimeoutlen=0
 set notimeout
 set viewoptions=cursor,folds,slash,unix
@@ -83,7 +83,7 @@ set lazyredraw "same as above
 set visualbell
 silent !mkdir -p ~/.config/nvim/tmp/backup
 silent !mkdir -p ~/.config/nvim/tmp/undo
-"silent !mkdir -p ~/.config/nvim/tmp/sessions
+silent !mkdir -p ~/.config/nvim/tmp/sessions
 set backupdir=~/.config/nvim/tmp/backup,.
 set directory=~/.config/nvim/tmp/backup,.
 if has('persistent_undo')
@@ -92,7 +92,6 @@ if has('persistent_undo')
 endif
 set colorcolumn=80
 set updatetime=1000
-set virtualedit=block
 
 au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
 
@@ -119,53 +118,6 @@ let g:terminal_color_11 = '#F4F99D'
 let g:terminal_color_12 = '#CAA9FA'
 let g:terminal_color_13 = '#FF92D0'
 let g:terminal_color_14 = '#9AEDFE'
-augroup TermHandling
-  autocmd!
-  " Turn off line numbers, listchars, auto enter insert mode and map esc to
-  " exit insert mode
-  autocmd TermOpen * setlocal listchars= nonumber norelativenumber
-    \ | startinsert
-  autocmd FileType fzf call LayoutTerm(0.6, 'horizontal')
-augroup END
-
-function! LayoutTerm(size, orientation) abort
-  let timeout = 16.0
-  let animation_total = 120.0
-  let timer = {
-    \ 'size': a:size,
-    \ 'step': 1,
-    \ 'steps': animation_total / timeout
-  \}
-
-  if a:orientation == 'horizontal'
-    resize 1
-    function! timer.f(timer)
-      execute 'resize ' . string(&lines * self.size * (self.step / self.steps))
-      let self.step += 1
-    endfunction
-  else
-    vertical resize 1
-    function! timer.f(timer)
-      execute 'vertical resize ' . string(&columns * self.size * (self.step / self.steps))
-      let self.step += 1
-    endfunction
-  endif
-  call timer_start(float2nr(timeout), timer.f, {'repeat': float2nr(timer.steps)})
-endfunction
-
-" Open autoclosing terminal, with optional size and orientation
-function! OpenTerm(cmd, ...) abort
-  let orientation = get(a:, 2, 'horizontal')
-  if orientation == 'horizontal'
-    new | wincmd J
-  else
-    vnew | wincmd L
-  endif
-  call LayoutTerm(get(a:, 1, 0.5), orientation)
-  call termopen(a:cmd, {'on_exit': {j,c,e -> execute('if c == 0 | close | endif')}})
-endfunction
-" }}}
-" vim:fdm=marker
 
 
 " ===
@@ -174,11 +126,7 @@ endfunction
 " Set <LEADER> as <SPACE>, ; as :
 let mapleader=" "
 noremap ; :
-
-" Save & quit
-noremap Q :q<CR>
-noremap <C-q> :qa<CR>
-noremap S :w<CR>
+noremap : q:h
 
 " Open the vimrc file anytime
 noremap <LEADER>rc :e ~/.config/nvim/init.vim<CR>
@@ -186,9 +134,9 @@ noremap <LEADER>rc :e ~/.config/nvim/init.vim<CR>
 " Open Startify
 "noremap <LEADER>st :Startify<CR>
 
-" Insert Key
-noremap h i
-noremap H I
+" Insert key
+noremap <silent> h i
+noremap <silent> H I
 
 " make Y to copy till the end of the line
 nnoremap Y y$
@@ -215,12 +163,7 @@ noremap <silent> <LEADER>o za
 
 " Open up lazygit
 noremap \g :term lazygit<CR>
-noremap <c-g> :tabe<CR>:-tabmove<CR>:term lazygit<CR>
-
-" Open up pudb
-noremap <c-d> :tab sp<CR>:term python3 -m pudb %<CR>
-"noremap <f5> :tab sp<CR>:term python3 -m pudb %<CR>
-
+noremap <c-g> :term lazygit<CR>
 
 
 " ===
@@ -233,16 +176,14 @@ noremap <c-d> :tab sp<CR>:term python3 -m pudb %<CR>
 "     e
 "     v
 noremap <silent> i k
-noremap <silent> j h
 noremap <silent> k j
+noremap <silent> j h
 
-" U/E keys for 5 times u/e (faster navigation)
-noremap <silent> W 5k
-noremap <silent> B 5j
 
 " Faster in-line navigation
 noremap W 5w
 noremap B 5b
+
 
 " Ctrl + U or E will move up/down the view port without moving the cursor
 noremap <C-U> 5<C-y>
@@ -306,8 +247,8 @@ noremap <LEADER>q <C-w>j:q<CR>
 " Create a new tab with tu
 noremap tu :tabe<CR>
 " Move around tabs with tn and ti
-noremap tn :-tabnext<CR>
-noremap ti :+tabnext<CR>
+noremap tj :-tabnext<CR>
+noremap tl :+tabnext<CR>
 " Move the tabs with tmn and tmi
 noremap tmn :-tabmove<CR>
 noremap tmi :+tabmove<CR>
@@ -325,14 +266,11 @@ autocmd BufRead,BufNewFile *.md setlocal spell
 " ===
 " === Other useful stuff
 " ===
-" Open a new instance of st with the cwd
-nnoremap \t :tabe<CR>:-tabmove<CR>:term sh -c 'st'<CR><C-\><C-N>:q<CR>
-
 " Move the next character to the end of the line with ctrl+9
 inoremap <C-u> <ESC>lx$p
 
 " Opening a terminal window
-noremap <LEADER>/ :set splitbelow<CR>:split<CR>:res +10<CR>:term<CR>
+noremap <LEADER>/ :term<CR>
 
 " Press space twice to jump to the next '<++>' and edit it
 noremap <LEADER><LEADER> <Esc>/<++><CR>:nohlsearch<CR>c4l
@@ -386,16 +324,10 @@ func! CompileRunGcc()
 	elseif &filetype == 'tex'
 		silent! exec "VimtexStop"
 		silent! exec "VimtexCompile"
-	elseif &filetype == 'dart'
-		set splitright
-		:vsp
-		:term cd ..; flutter run
 	elseif &filetype == 'go'
 		set splitbelow
 		:sp
 		:term go run %
-		exec "<C-\><C-N>"
-		exec "<C-w>h"
 	endif
 endfunc
 
@@ -406,10 +338,10 @@ endfunc
 
 call plug#begin('~/.config/nvim/plugged')
 
-"Plug 'camspiers/animate.vim'
-
-" Testing my own plugin
-Plug 'theniceboy/vim-calc'
+Plug 'mg979/vim-xtabline'
+Plug 'idanarye/vim-vebugger'
+Plug 'Shougo/vimproc.vim', {'do' : 'make'}
+Plug 'wellle/context.vim'
 
 " Pretty Dress
 Plug 'theniceboy/eleline.vim'
@@ -421,29 +353,20 @@ Plug 'bling/vim-bufferline'
 "Plug 'mhartington/oceanic-next'
 "Plug 'kristijanhusak/vim-hybrid-material'
 Plug 'ajmwagar/vim-deus'
-"Plug 'arzg/vim-colors-xcode'
 
 " Genreal Highlighter
 Plug 'jaxbot/semantic-highlight.vim'
-Plug 'chrisbra/Colorizer' " Show colors with :ColorHighlight
 
 " File navigation
 "Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
 "Plug 'Xuyuanp/nerdtree-git-plugin'
 Plug 'junegunn/fzf.vim'
-"Plug 'yuki-ycino/fzf-preview.vim'
 "Plug 'junegunn/fzf', {'dir': '~/.fzf', 'do': './install --all'}
 "Plug 'junegunn/fzf'
-Plug 'kevinhwang91/rnvimr', {'do': 'make install'}
+Plug 'francoiscabrol/ranger.vim'
 
 " Taglist
 Plug 'liuchengxu/vista.vim'
-
-" Debugger
-Plug 'puremourning/vimspector', {'do': './install_gadget.py --enable-c --enable-python'}
-
-" REPL
-"Plug 'rhysd/reply.vim'
 
 " Error checking, handled by coc
 
@@ -463,12 +386,6 @@ Plug 'fszymanski/fzf-gitignore', { 'do': ':UpdateRemotePlugins' }
 "Plug 'mhinz/vim-signify'
 Plug 'airblade/vim-gitgutter'
 
-" Tex
-Plug 'lervag/vimtex'
-
-" CSharp
-Plug 'OmniSharp/omnisharp-vim'
-Plug 'ctrlpvim/ctrlp.vim' , { 'for': ['cs', 'vim-plug'] } " omnisharp-vim dependency
 
 " HTML, CSS, JavaScript, PHP, JSON, etc.
 Plug 'elzr/vim-json'
@@ -491,26 +408,14 @@ Plug 'numirias/semshi', { 'do': ':UpdateRemotePlugins', 'for' :['python', 'vim-p
 "Plug 'plytophogy/vim-virtualenv', { 'for' :['python', 'vim-plug'] }
 Plug 'tweekmonster/braceless.vim'
 
-" Flutter
-Plug 'dart-lang/dart-vim-plugin'
-Plug 'thosakwe/vim-flutter'
-
-" Swift
-Plug 'keith/swift.vim'
-
 " Markdown
 Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install_sync() }, 'for' :['markdown', 'vim-plug'] }
 Plug 'dhruvasagar/vim-table-mode', { 'on': 'TableModeToggle' }
-Plug 'mzlogin/vim-markdown-toc', { 'for': ['gitignore', 'markdown'] }
 Plug 'theniceboy/bullets.vim'
-
-" Other filetypes
-Plug 'jceb/vim-orgmode', {'for': ['vim-plug', 'org']}
 
 " Editor Enhancement
 "Plug 'Raimondi/delimitMate'
 Plug 'jiangmiao/auto-pairs'
-Plug 'terryma/vim-multiple-cursors'
 Plug 'scrooloose/nerdcommenter' " in <space>cn to comment a line
 Plug 'AndrewRadev/switch.vim' " gs to switch
 Plug 'tpope/vim-surround' " type yskw' to wrap the word with '' or type cs'` to change 'word' to `word`
@@ -519,13 +424,8 @@ Plug 'junegunn/vim-after-object' " da= to delete what's after =
 Plug 'junegunn/vim-easy-align' " gaip= to align the = in paragraph, 
 Plug 'tpope/vim-capslock'	" Ctrl+L (insert) to toggle capslock
 Plug 'easymotion/vim-easymotion'
-Plug 'Konfekt/FastFold'
 Plug 'junegunn/vim-peekaboo'
-Plug 'bkad/CamelCaseMotion'
-"Plug 'wellle/context.vim'
 
-" Input Method Autoswitch
-"Plug 'rlue/vim-barbaric' " slowing down vim-multiple-cursors
 
 " Formatter
 Plug 'Chiel92/vim-autoformat'
@@ -535,42 +435,21 @@ Plug 'junegunn/goyo.vim'
 "Plug 'reedes/vim-wordy'
 "Plug 'ron89/thesaurus_query.vim'
 
-" Bookmarks
-"Plug 'kshenoy/vim-signature'
-Plug 'MattesGroeger/vim-bookmarks'
-
-" Find & Replace
-Plug 'brooth/far.vim', { 'on': ['F', 'Far', 'Fardo'] }
-Plug 'osyo-manga/vim-anzu'
-
-" Documentation
-"Plug 'KabbAmine/zeavim.vim' " <LEADER>z to find doc
-
-" Mini Vim-APP
-"Plug 'voldikss/vim-floaterm'
-"Plug 'liuchengxu/vim-clap'
-"Plug 'jceb/vim-orgmode'
-"Plug 'mhinz/vim-startify'
-
-" Vim Applications
-Plug 'itchyny/calendar.vim'
+Plug 'theniceboy/vim-leader-mapper'
 
 " Other visual enhancement
 Plug 'ryanoasis/vim-devicons'
 Plug 'luochen1990/rainbow'
-Plug 'mg979/vim-xtabline'
-Plug 'wincent/terminus'
 
 " Other useful utilities
-Plug 'lambdalisue/suda.vim' " do stuff like :sudowrite
+Plug 'tpope/vim-eunuch' " do stuff like :SudoWrite
 Plug 'makerj/vim-pdf'
-"Plug 'xolox/vim-session'
-"Plug 'xolox/vim-misc' " vim-session dep
 
 " Dependencies
 Plug 'MarcWeber/vim-addon-mw-utils'
 Plug 'kana/vim-textobj-user'
 Plug 'roxma/nvim-yarp'
+Plug 'rbgrouleff/bclose.vim' " For ranger.vim
 
 call plug#end()
 
@@ -630,44 +509,31 @@ nnoremap <LEADER>g= :GitGutterNextHunk<CR>
 " ===
 " fix the most annoying bug that coc has
 silent! au BufEnter,BufRead,BufNewFile * silent! unmap if
-let g:coc_global_extensions = ['coc-python', 'coc-vimlsp', 'coc-html', 'coc-json', 'coc-css', 'coc-tsserver', 'coc-yank', 'coc-lists', 'coc-gitignore', 'coc-vimlsp', 'coc-tailwindcss', 'coc-stylelint', 'coc-tslint', 'coc-lists', 'coc-git', 'coc-explorer', 'coc-pyright', 'coc-sourcekit', 'coc-translator']
+let g:coc_global_extensions = ['coc-python', 'coc-vimlsp', 'coc-html', 'coc-json', 'coc-css', 'coc-tsserver', 'coc-yank', 'coc-lists', 'coc-gitignore', 'coc-vimlsp', 'coc-tailwindcss', 'coc-stylelint', 'coc-tslint', 'coc-lists', 'coc-git', 'coc-explorer', 'coc-pyright', 'coc-sourcekit', 'coc-translator', 'coc-tabnine' ,'coc-phpls', 'coc-snippets', 'coc-java']
 "set statusline^=%{coc#status()}%{get(b:,'coc_current_function','')}
-"nmap <silent> <TAB> <Plug>(coc-range-select)
-"xmap <silent> <TAB> <Plug>(coc-range-select)
 " use <tab> for trigger completion and navigate to the next complete item
 function! s:check_back_space() abort
 	let col = col('.') - 1
-	return !col || getline('.')[col - 1]	=~ '\s'
+	return !col || getline('.')[col - 1]	=~# '\s'
 endfunction
 inoremap <silent><expr> <Tab>
-			\ pumvisible() ? "\<C-n>" :
+			\ pumvisible() ? coc#_select_confirm() :
+			\ coc#expandableOrJumpable() ? "\<C-r>=coc#rpc#request('doKeymap', ['snippets-expand-jump',''])\<CR>" :
 			\ <SID>check_back_space() ? "\<Tab>" :
 			\ coc#refresh()
+let g:coc_snippet_next = '<tab>'
 inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
-"inoremap <silent><expr> <CR> pumvisible() ? "\<C-y><CR>" : "\<CR>"
-function! s:check_back_space() abort
-	let col = col('.') - 1
-	return !col || getline('.')[col - 1]  =~# '\s'
-endfunction
 inoremap <silent><expr> <c-space> coc#refresh()
-" Text Objects
-xmap kf <Plug>(coc-funcobj-i)
-xmap af <Plug>(coc-funcobj-a)
-omap kf <Plug>(coc-funcobj-i)
-omap af <Plug>(coc-funcobj-a)
-" Useful commands
-nnoremap <silent> <space>y :<C-u>CocList -A --normal yank<cr>
-nmap <silent> gd <Plug>(coc-definition)
-nmap <silent> gy <Plug>(coc-type-definition)
-nmap <silent> gi <Plug>(coc-implementation)
-nmap <silent> gr <Plug>(coc-references)
-nmap <leader>rn <Plug>(coc-rename)
-nmap tt :CocCommand explorer<CR>
+
+
+inoremap <silent><expr> <CR> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
+
 " coc-translator
 nmap ts <Plug>(coc-translator-p)
-" Remap for do codeAction of selected region, ex: `<leader>aap` for current paragraph
-xmap <leader>a  <Plug>(coc-codeaction-selected)
-nmap <leader>a  <Plug>(coc-codeaction-selected)
+
+" coc-markmap
+command! Markmap CocCommand markmap.create
+
 
 " ===
 " === MarkdownPreview
@@ -693,6 +559,13 @@ let g:mkdp_markdown_css = ''
 let g:mkdp_highlight_css = ''
 let g:mkdp_port = ''
 let g:mkdp_page_title = '「${name}」'
+
+
+" ===
+" === Python-syntax
+" ===
+let g:python_highlight_all = 1
+" let g:python_slow_sync = 0
 
 
 " ===
@@ -757,49 +630,6 @@ command! -bang BTags
   \ })
 
 
-"" ===
-"" === fzf-preview.vim
-"" ===
-"noremap <C-w> :BuffersPreview<CR>
-"let g:fzf_preview_default_key_bindings = 'ctrl-e:down,ctrl-u:up'
-"let g:fzf_preview_layout = 'belowright split new'
-"let g:fzf_preview_rate = 0.4
-"let g:fzf_full_preview_toggle_key = '<C-f>'
-"let g:fzf_preview_command = 'ccat --color=always {-1}'
-"let g:fzf_binary_preview_command = 'echo "It is a binary file"'
-
-
-" ===
-" === CTRLP (Dependency for omnisharp)
-" ===
-let g:ctrlp_map = ''
-let g:ctrlp_cmd = 'CtrlP'
-
-
-
-" ===
-" === vim-bookmarks
-" ===
-let g:bookmark_no_default_key_mappings = 1
-nmap mt <Plug>BookmarkToggle
-nmap ma <Plug>BookmarkAnnotate
-nmap ml <Plug>BookmarkShowAll
-nmap mi <Plug>BookmarkNext
-nmap mn <Plug>BookmarkPrev
-nmap mC <Plug>BookmarkClear
-nmap mX <Plug>BookmarkClearAll
-nmap mu <Plug>BookmarkMoveUp
-nmap me <Plug>BookmarkMoveDown
-nmap <Leader>g <Plug>BookmarkMoveToLine
-let g:bookmark_save_per_working_dir = 1
-let g:bookmark_auto_save = 1
-let g:bookmark_highlight_lines = 1
-let g:bookmark_manage_per_buffer = 1
-let g:bookmark_save_per_working_dir = 1
-let g:bookmark_center = 1
-let g:bookmark_auto_close = 1
-let g:bookmark_location_list = 1
-
 
 " ===
 " === Undotree
@@ -812,41 +642,12 @@ let g:undotree_WindowLayout = 2
 let g:undotree_DiffpanelHeight = 8
 let g:undotree_SplitWidth = 24
 function g:Undotree_CustomMap()
-	nmap <buffer> u <plug>UndotreeNextState
-	nmap <buffer> e <plug>UndotreePreviousState
-	nmap <buffer> U 5<plug>UndotreeNextState
-	nmap <buffer> E 5<plug>UndotreePreviousState
+	nmap <buffer> i <plug>UndotreeNextState
+	nmap <buffer> k <plug>UndotreePreviousState
+	nmap <buffer> I 5<plug>UndotreeNextState
+	nmap <buffer> K 5<plug>UndotreePreviousState
 endfunc
 
-
-" ==
-" == vim-multiple-cursor
-" ==
-let g:multi_cursor_use_default_mapping = 0
-let g:multi_cursor_start_word_key = '<c-k>'
-let g:multi_cursor_select_all_word_key = '<a-k>'
-let g:multi_cursor_start_key = 'g<c-k>'
-let g:multi_cursor_select_all_key = 'g<a-k>'
-let g:multi_cursor_next_key = '<c-k>'
-let g:multi_cursor_prev_key = '<c-p>'
-let g:multi_cursor_skip_key = '<C-s>'
-let g:multi_cursor_quit_key = '<Esc>'
-
-
-" ===
-" === Far.vim
-" ===
-noremap <LEADER>f :F  **/*<left><left><left><left><left>
-
-
-" ===
-" === vim-calc
-" ===
-"noremap <LEADER>a :call Calc()<CR>
-" Testing
-"if !empty(glob('~/Github/vim-calc/vim-calc.vim'))
-"source ~/Github/vim-calc/vim-calc.vim
-"endif
 
 
 " ===
@@ -881,6 +682,13 @@ autocmd VimEnter * call vista#RunForNearestMethodOrFunction()
 
 
 " ===
+" === Ranger.vim
+" ===
+nnoremap R :Ranger<CR>
+let g:ranger_map_keys = 0
+
+
+" ===
 " === fzf-gitignore
 " ===
 noremap <LEADER>gi :FzfGitignore<CR>
@@ -890,57 +698,27 @@ noremap <LEADER>gi :FzfGitignore<CR>
 " === Ultisnips
 " ===
 let g:tex_flavor = "latex"
-inoremap <c-n> <nop>
-let g:UltiSnipsExpandTrigger="<c-e>"
-let g:UltiSnipsJumpForwardTrigger="<c-e>"
-let g:UltiSnipsJumpBackwardTrigger="<c-n>"
+" Use <C-l> for trigger snippet expand.
+imap <C-l> <Plug>(coc-snippets-expand)
+
+" Use <C-j> for select text for visual placeholder of snippet.
+vmap <C-j> <Plug>(coc-snippets-select)
+
+" Use <C-j> for jump to next placeholder, it's default of coc.nvim
+let g:coc_snippet_next = '<c-j>'
+
+" Use <C-k> for jump to previous placeholder, it's default of coc.nvim
+let g:coc_snippet_prev = '<c-k>'
+
+" Use <C-j> for both expand and jump (make expand higher priority.)
+imap <C-j> <Plug>(coc-snippets-expand-jump)
+
+" Trigger configuration. Do not use <tab> if you use https://github.com/Valloric/YouCompleteMe.
+let g:UltiSnipsExpandTrigger="<C-b>"
+let g:UltiSnipsJumpForwardTrigger="<tab>"
+let g:UltiSnipsJumpBackwardTrigger="<c-z>"
 let g:UltiSnipsSnippetDirectories = [$HOME.'/.config/nvim/Ultisnips/', 'UltiSnips']
 silent! au BufEnter,BufRead,BufNewFile * silent! unmap <c-r>
-
-
-" ===
-" === vimtex
-" ===
-"let g:vimtex_view_method = ''
-let g:vimtex_view_general_viewer = 'llpp'
-let g:vimtex_mappings_enabled = 0
-let g:vimtex_text_obj_enabled = 0
-let g:vimtex_motion_enabled = 0
-let maplocalleader=' '
-
-
-" ===
-" === vim-calendar
-" ===
-"noremap \c :Calendar -position=here<CR>
-noremap \\ :Calendar -view=clock -position=here<CR>
-let g:calendar_google_calendar = 1
-let g:calendar_google_task = 1
-augroup calendar-mappings
-	autocmd!
-	" diamond cursor
-	autocmd FileType calendar nmap <buffer> u <Plug>(calendar_up)
-	autocmd FileType calendar nmap <buffer> n <Plug>(calendar_left)
-	autocmd FileType calendar nmap <buffer> e <Plug>(calendar_down)
-	autocmd FileType calendar nmap <buffer> i <Plug>(calendar_right)
-	autocmd FileType calendar nmap <buffer> <c-u> <Plug>(calendar_move_up)
-	autocmd FileType calendar nmap <buffer> <c-n> <Plug>(calendar_move_left)
-	autocmd FileType calendar nmap <buffer> <c-e> <Plug>(calendar_move_down)
-	autocmd FileType calendar nmap <buffer> <c-i> <Plug>(calendar_move_right)
-	autocmd FileType calendar nmap <buffer> k <Plug>(calendar_start_insert)
-	autocmd FileType calendar nmap <buffer> K <Plug>(calendar_start_insert_head)
-	" unmap <C-n>, <C-p> for other plugins
-	autocmd FileType calendar nunmap <buffer> <C-n>
-	autocmd FileType calendar nunmap <buffer> <C-p>
-augroup END
-
-
-" ===
-" === Anzu
-" ===
-set statusline=%{anzu#search_status()}
-nnoremap = n
-nnoremap - N
 
 
 " ===
@@ -978,55 +756,6 @@ let g:go_highlight_variable_declarations = 0
 nnoremap \f :Autoformat<CR>
 
 
-" ===
-" === OmniSharp
-" ===
-let g:OmniSharp_typeLookupInPreview = 1
-let g:omnicomplete_fetch_full_documentation = 1
-
-let g:OmniSharp_server_use_mono = 1
-let g:OmniSharp_server_stdio = 1
-let g:OmniSharp_highlight_types = 2
-let g:OmniSharp_selector_ui = 'ctrlp'
-
-autocmd Filetype cs nnoremap <buffer> gd :OmniSharpPreviewDefinition<CR>
-autocmd Filetype cs nnoremap <buffer> gr :OmniSharpFindUsages<CR>
-autocmd Filetype cs nnoremap <buffer> gy :OmniSharpTypeLookup<CR>
-autocmd Filetype cs nnoremap <buffer> ga :OmniSharpGetCodeActions<CR>
-autocmd Filetype cs nnoremap <buffer> <LEADER>rn :OmniSharpRename<CR><C-N>:res +5<CR>
-
-sign define OmniSharpCodeActions text=💡
-
-augroup OSCountCodeActions
-	autocmd!
-	autocmd FileType cs set signcolumn=yes
-	autocmd CursorHold *.cs call OSCountCodeActions()
-augroup END
-
-function! OSCountCodeActions() abort
-	if bufname('%') ==# '' || OmniSharp#FugitiveCheck() | return | endif
-	if !OmniSharp#IsServerRunning() | return | endif
-	let opts = {
-				\ 'CallbackCount': function('s:CBReturnCount'),
-				\ 'CallbackCleanup': {-> execute('sign unplace 99')}
-				\}
-	call OmniSharp#CountCodeActions(opts)
-endfunction
-
-function! s:CBReturnCount(count) abort
-	if a:count
-		let l = getpos('.')[1]
-		let f = expand('%:p')
-		execute ':sign place 99 line='.l.' name=OmniSharpCodeActions file='.f
-	endif
-endfunction
-
-
-" ===
-" === Colorizer
-" ===
-let g:colorizer_syntax = 1
-
 
 " ===
 " === vim-easymotion
@@ -1060,27 +789,6 @@ let g:vim_jsx_pretty_colorful_config = 1
 
 
 " ===
-" === fastfold
-" ===
-nmap zuz <Plug>(FastFoldUpdate)
-let g:fastfold_savehook = 1
-let g:fastfold_fold_command_suffixes =  ['x','X','a','A','o','O','c','C']
-let g:fastfold_fold_movement_commands = [']z', '[z', 'ze', 'zu']
-let g:markdown_folding = 1
-let g:tex_fold_enabled = 1
-let g:vimsyn_folding = 'af'
-let g:xml_syntax_folding = 1
-let g:javaScript_fold = 1
-let g:sh_fold_enabled= 7
-let g:ruby_fold = 1
-let g:perl_fold = 1
-let g:perl_fold_blocks = 1
-let g:r_syntax_folding = 1
-let g:rust_fold = 1
-let g:php_folding = 1
-
-
-" ===
 " === vim-easy-align
 " ===
 xmap ga <Plug>(EasyAlign)
@@ -1091,6 +799,33 @@ nmap ga <Plug>(EasyAlign)
 " === vim-after-object
 " ===
 autocmd VimEnter * call after_object#enable('=', ':', '-', '#', ' ')
+
+
+" ===
+" === vim-map-leader
+" ===
+let g:leaderMenu = {'name':  "Shortcut Menu",
+\'SPC f':  ['Advanced find'],
+\'SPC rc': ['Edit nvim config'],
+\'SPC Enter':  ['Clear search'],
+\'SPC dw':  ['Remove adj. dup. words'],
+\'SPC tt':  ['spc to tabs'],
+\'SPC o':  ['Open folds'],
+\'SPC q':  ['Close win below'],
+\'SPC /':  ['Open terminal'],
+\'SPC <SPC>':  ['Find <++>'],
+\'SPC sc':  ['Toggle spell-check'],
+\'SPC gf':  ['Fold unchanged'],
+\'SPC g-':  ['Previous hunk'],
+\'SPC g=':  ['Next Hunk'],
+\'SPC rn':  ['Rename variable'],
+\'SPC tm':  ['Toggle table-mode'],
+\'SPC a':  ['Calculate equation'],
+\'SPC gi':  ['New .gitignore'],
+\'SPC gy':  ['Toggle focus mode'],
+\}
+nnoremap <silent> ? :call leaderMapper#start() "<Space>"<CR>
+let g:leaderMapperWidth = 80
 
 
 " ===
@@ -1112,95 +847,32 @@ noremap \p :XTabInfo<CR>
 
 
 " ===
-" === vim-session
+" === vebugger
 " ===
-"let g:session_directory = $HOME."/.config/nvim/tmp/sessions"
-"let g:session_autosave = 'no'
-"let g:session_autoload = 'no'
-"let g:session_command_aliases = 1
-"set sessionoptions-=buffers
-"set sessionoptions-=options
-"noremap sl :OpenSession<CR>
-"noremap sS :SaveSession<CR>
-"noremap ss :SaveSession 
-"noremap sc :SaveSession<CR>:CloseSession<CR>:q<CR>
-"noremap so :OpenSession default<CR>
-"noremap sD :DeleteSession<CR>
-""noremap sA :AppendTabSession<CR>
+" Compile function
+let g:vebugger_leader='<leader>a'
+noremap <c-d> :call DebuggerRun()<CR>:VBGcontinue<CR>
+"noremap <f5> :call DebuggerRun()<CR>
+func! DebuggerRun()
+	exec "w"
+	if &filetype == 'python'
+		VBGstartPDB3 %
+	endif
+endfunc
+noremap <f3> :VBGkill<CR>
+noremap <f5> :VBGcontinue<CR>
+noremap <f9> :VBGtoggleBreakpointThisLine<CR>
+noremap <f10> :VBGstepOver<CR>
+noremap <f11> :VBGstepInto<CR>
+noremap <f12> :VBGstepOut<CR>
 
 
 " ===
 " === context.vim
 " ===
-"let g:context_add_mappings = 0
-"noremap <leader>ct :ContextToggle<CR>
+let g:context_add_mappings = 0
 
 
-" ===
-" === suda.vim
-" ===
-cnoreabbrev sudowrite w suda://%
-cnoreabbrev sw w suda://%
-
-
-" ===
-" === vimspector
-" ===
-let g:vimspector_enable_mappings = 'HUMAN'
-function! s:read_template_into_buffer(template)
-	" has to be a function to avoid the extra space fzf#run insers otherwise
-	execute '0r ~/.config/nvim/sample_vimspector_json/'.a:template
-endfunction
-command! -bang -nargs=* LoadVimSpectorJsonTemplate call fzf#run({
-			\   'source': 'ls -1 ~/.config/nvim/sample_vimspector_json',
-			\   'down': 20,
-			\   'sink': function('<sid>read_template_into_buffer')
-			\ })
-noremap <leader>vs :tabe .vimspector.json<CR>:LoadVimSpectorJsonTemplate<CR>
-sign define vimspectorBP text=☛ texthl=Normal
-sign define vimspectorBPDisabled text=☞ texthl=Normal
-sign define vimspectorPC text=🔶 texthl=SpellBad
-
-
-
-" ===
-" === camelcase
-" ===
-map <silent> w <Plug>CamelCaseMotion_w
-map <silent> b <Plug>CamelCaseMotion_b
-map <silent> e <Plug>CamelCaseMotion_e
-map <silent> ge <Plug>CamelCaseMotion_ge
-sunmap w
-sunmap b
-sunmap e
-sunmap ge
-
-
-" ===
-" === reply.vim
-" ===
-"noremap <LEADER>rp :w<CR>:Repl<CR><C-\><C-N><C-w><C-h>
-"noremap <LEADER>rs :ReplSend<CR><C-w><C-l>a<CR><C-\><C-N><C-w><C-h>
-"noremap <LEADER>rt :ReplStop<CR>
-
-
-" ===
-" === vim-markdown-toc
-" ===
-"let g:vmt_auto_update_on_save = 0
-"let g:vmt_dont_insert_fence = 1
-let g:vmt_cycle_list_item_markers = 1
-let g:vmt_fence_text = 'TOC'
-let g:vmt_fence_closing_text = '/TOC'
-
-
-" ===
-" === rnvimr
-" ===
-let g:rnvimr_ex_enable = 1
-let g:rnvimr_pick_enable = 1
-nnoremap <silent> R :RnvimrSync<CR>:RnvimrToggle<CR><C-\><C-n>:RnvimrResize 0<CR>
-let g:rnvimr_presets = [{'width': 1.0, 'height': 1.0}]
 
 
 " ===================== End of Plugin Settings =====================
