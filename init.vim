@@ -67,11 +67,6 @@ set updatetime=100
 
 
 " ===
-" === Terminal Behaviors
-" ===
-let g:neoterm_autoscroll = 1
-
-" ===
 " === Basic Mappings
 " ===
 " Set <LEADER> as <SPACE>, ; as :
@@ -83,12 +78,17 @@ noremap : q:h
 noremap <LEADER>rc :e ~/.config/nvim/init.vim<CR>
 
 
+" Close editor Panel
+unmap <C-w>
+map <C-w> :call VSCodeNotify('workbench.action.closeActiveEditor')<CR> 
 
-" Open Startify
-"noremap <LEADER>st :Startify<CR>
 
 " Undo operations
 noremap l u
+umap U
+
+" Redo
+noremap <C-r> :call VSCodeNotify('redo')<CR>
 
 " Insert key
 noremap <silent> h i
@@ -106,13 +106,6 @@ nnoremap > >>
 
 " Search
 noremap <LEADER><CR> :nohlsearch<CR>
-
-" Adjacent duplicate words
-noremap <LEADER>dw /\(\<\w\+\>\)\_s*\1
-
-" Space to Tab
-nnoremap <LEADER>tt :%s/    /\t/g
-vnoremap <LEADER>tt :s/    /\t/g
 
 " Folding
 noremap <silent> <LEADER>o za
@@ -145,8 +138,8 @@ noremap B 5b
 " ===
 " === Searching
 " ===
-noremap - N
-noremap = n
+noremap K N
+noremap k n
 
 " ===
 " === Command Mode Cursor Movement
@@ -165,10 +158,10 @@ noremap sn :set nosplitright<CR>:vsplit<CR>:set splitright<CR>
 noremap si :set splitright<CR>:vsplit<CR>
 
 " Resize splits with arrow keys
-noremap <up> 5u
-noremap <down> 5e
-noremap <left> 5n
-noremap <right> 5i
+noremap <up> 5k
+noremap <down> 5j
+noremap <left> 5h
+noremap <right> 5l
 
 
 " ===
@@ -177,8 +170,8 @@ noremap <right> 5i
 " Create a new tab with tu
 noremap tu :call VSCodeNotify('workbench.action.files.newUntitledFile')<CR>
 " Move around tabs with tn and ti
-noremap ti :call VSCodeNotify('workbench.action.previousEditor')<CR>
-noremap tn :call VSCodeNotiii('workbench.action.nextEditor')<CR>
+noremap tn :call VSCodeNotify('workbench.action.previousEditor')<CR>
+noremap ti :call VSCodeNotify('workbench.action.nextEditor')<CR>
 
 
 
