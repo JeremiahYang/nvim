@@ -6,9 +6,9 @@
 " ===
 "set clipboard=unnamedplus
 let &t_ut=''
-set autochdir
+" set autochdir
 set encoding=utf-8
-
+set mouse=a
 
 " ===
 " === Editor behavior
@@ -49,7 +49,7 @@ set completeopt=longest,noinsert,menuone,noselect,preview
 set ttyfast "should make scrolling faster
 set lazyredraw "same as above
 set visualbell
-set colorcolumn=80
+set colorcolumn=100
 set updatetime=100
 set virtualedit=block
 noremap <silent> <LEADER>o za
@@ -82,7 +82,7 @@ noremap l u
 " umap U
 
 " Redo
-noremap <C-r> :call VSCodeNotify('redo')<CR>
+" noremap <C-r> :call VSCodeNotify('redo')<CR>
 
 " Insert key
 noremap <silent> h i
@@ -107,10 +107,6 @@ vnoremap <LEADER>tt :s/    /\t/g
 
 " Folding
 noremap <silent> <LEADER>o za
-
-" Open up lazygit
-noremap \g :term lazygit<CR>
-noremap <c-g> :term lazygit<CR>
 
 
 " ===
@@ -197,6 +193,7 @@ Plug 'junegunn/vim-easy-align' " gaip= to align the = in paragraph,
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
+Plug 'kdheepak/lazygit.nvim'
 
 call plug#end()
 "
@@ -220,41 +217,25 @@ let g:coc_global_extensions = [
 	\ 'coc-vimlsp',
 	\ 'coc-syntax',
 	\ 'coc-translator',
+	\ 'coc-tabnine',
 	\ 'coc-explorer']
 "
-"
-" Use tab for trigger completion with characters ahead and navigate.
-" NOTE: Use command ':verbose imap <tab>' to make sure tab is not mapped by
-" other plugin before putting this into your config.
-inoremap <silent><expr> <TAB>
-      \ pumvisible() ? coc#pum#next(0):
-      \ CheckBackspace() ? "\<Tab>" :
-      \ coc#refresh()
-inoremap <expr><S-TAB> coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"
 
-" Make <CR> to accept selected completion item or notify coc.nvim to format
-" <C-g>u breaks current undo, please make your own choice.
-" inoremap <silent><expr> <CR> coc#pum#visible() ? coc#_select_confirm()                                                                                \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
-
-  inoremap <silent><expr> <TAB>
-    \ coc#pum#visible() ? coc#_select_confirm() :
-    \ coc#expandableOrJumpable() ?
-    \ "\<C-r>=coc#rpc#request('doKeymap', ['snippets-expand-jump',''])\<CR>" :
-    \ <SID>check_back_space() ? "\<TAB>" :
-    \ coc#refresh()
+" Map <tab> for trigger completion, completion confirm, snippet expand and jump
+" like VSCode. >
+	inoremap <silent><expr> <TAB>
+	  \ pumvisible() ? coc#_select_confirm() :
+	  \ coc#expandableOrJumpable() ?
+	  \ "\<C-r>=coc#rpc#request('doKeymap', ['snippets-expand-jump',''])\<CR>" :
+	  \ <SID>check_back_space() ? "\<TAB>" :
+	  \ coc#refresh()
 
   function! s:check_back_space() abort
     let col = col('.') - 1
     return !col || getline('.')[col - 1]  =~# '\s'
   endfunction
-
   let g:coc_snippet_next = '<tab>'
-
-function! CheckBackspace() abort
-  let col = col('.') - 1
-  return !col || getline('.')[col - 1]  =~# '\s'
-endfunction
-
+" =============================================================================
 " Use <c-space> to trigger completion.
 if has('nvim')
   inoremap <silent><expr> <c-space> coc#refresh()
@@ -292,27 +273,15 @@ nmap <silent> gr ;tab sp<CR><Plug>(coc-references)
 nmap tt <Cmd>CocCommand explorer<CR>
 
 " ==================== FZF ====================
-command! -bang -nargs=? -complete=dir Files
-    \ call fzf#vim#files(<q-args>, {'options': ['--layout=reverse', '--info=inline', '--preview', 'cat {}']}, <bang>0)
+" command! -bang ProjectFiles call fzf#vim#files('~/Documents/geoppt/geoppt2021/code/webApp', <bang>0)
+noremap <c-p> :Files<cr>
 
-function! s:list_buffers()
-  redir => list
-  silent ls
-  redir END
-  return split(list, "\n")
-endfunction
-
-function! s:delete_buffers(lines)
-  execute 'bwipeout' join(map(a:lines, {_, line -> split(line)[0]}))
-endfunction
-
-command! BD call fzf#run(fzf#wrap({
-  \ 'source': s:list_buffers(),
-  \ 'sink*': { lines -> s:delete_buffers(lines) },
-  \ 'options': '--multi --reverse --bind ctrl-a:select-all+accept'
-\ }))
-
-noremap <c-d> :BD<CR>
+" ==================== lazygit.nvim ====================
+noremap <c-g> :LazyGit<CR>
+let g:lazygit_floating_window_winblend = 0 " transparency of floating window
+let g:lazygit_floating_window_scaling_factor = 1.0 " scaling factor for floating window
+let g:lazygit_floating_window_corner_chars = ['╭', '╮', '╰', '╯'] " customize lazygit popup window corner characters
+let g:lazygit_use_neovim_remote = 1 " for neovim-remote support
 
 " ===================== End of Plugin Settings =====================
 
